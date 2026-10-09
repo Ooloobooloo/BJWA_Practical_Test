@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="en" xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>Salary Management</title>
+    <link rel="stylesheet" th:href="@{/webjars/bootstrap/3.4.1/css/bootstrap.min.css}">
+    <style>
+        body { background: #e8e8e6; padding: 30px 0; }
+        .wrapper { background: #e8e8e6; padding: 20px; box-shadow: 0 0 12px rgba(0,0,0,.4); border-radius: 4px; }
+        .panel-heading .lead { margin: 0; font-size: 20px; }
+        .form-group label { font-weight: bold; font-size: 12px; text-align: left; }
+        .inline-form { display: inline; }
+        th { text-transform: uppercase; font-size: 12px; }
+    </style>
+</head>
+<body>
+<div class="container">
+    <div class="wrapper">
+
+        <!-- ================= FORM PANEL ================= -->
+        <div class="panel panel-default">
+            <div class="panel-heading"><span class="lead">User</span></div>
+            <div class="panel-body">
+
+                <div class="alert alert-success auto-hide" th:if="${success}" th:text="${success}"></div>
+                <div class="alert alert-danger" th:if="${error}" th:text="${error}"></div>
+
+                <form id="userForm" class="form-horizontal"
+                      th:action="${user.id == null} ? @{/users/add} : @{/users/update}"
+                      th:object="${user}" method="post">
+
+                    <input type="hidden" th:field="*{id}"/>
+
+                    <div class="form-group" th:classappend="${#fields.hasErrors('name')} ? 'has-error'">
+                        <label class="col-sm-2 control-label" for="name">Name</label>
+                        <div class="col-sm-7">
+                            <input type="text" th:field="*{name}" class="form-control input-sm"
+                                   placeholder="Enter your name"/>
+                            <span class="help-block" th:if="${#fields.hasErrors('name')}" th:errors="*{name}"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" th:classappend="${#fields.hasErrors('age')} ? 'has-error'">
+                        <label class="col-sm-2 control-label" for="age">Age</label>
+                        <div class="col-sm-7">
+                            <input type="number" th:field="*{age}" class="form-control input-sm"
+                                   placeholder="Enter your Age."/>
+                            <span class="help-block" th:if="${#fields.hasErrors('age')}" th:errors="*{age}"></span>
+                        </div>
+                    </div>
+
+                    <div class="form-group" th:classappend="${#fields.hasErrors('salary')} ? 'has-error'">
+                        <label class="col-sm-2 control-label" for="salary">Salary</label>
+                        <div class="col-sm-7">
+                            <input type="number" step="any" th:field="*{salary}"
+                                   class="form-control input-sm" placeholder="Enter your Salary."/>
+                            <span class="help-block" th:if="${#fields.hasErrors('salary')}" th:errors="*{salary}"></span>
+                        </div>
+                    </div>
+
+                    <div class="row">
+                        <div class="col-sm-9 text-right">
+                            <button type="submit" class="btn btn-primary btn-sm"
+                                    th:text="${user.id == null} ? 'Add' : 'Update'">Add</button>
+                            <a th:href="@{/}" class="btn btn-warning btn-sm">Reset Form</a>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+        <!-- ================= LIST PANEL ================= -->
+        <div class="panel panel-default">
+            <div class="panel-heading">
+                <div class="row">
+                    <div class="col-sm-6"><span class="lead">List of Users</span></div>
+                    <div class="col-sm-6">
+                        <!-- SEARCH -->
+                        <form class="form-inline text-right" th:action="@{/}" method="get">
+                            <input type="text" name="keyword" th:value="${keyword}" class="form-control input-sm"
+                                   placeholder="Search by name..."/>
+                            <button type="submit" class="btn btn-info btn-sm">Search</button>
+                            <a th:href="@{/}" class="btn btn-default btn-sm"
+                               th:if="${keyword != null and !keyword.isBlank()}">Clear</a>
+                        </form>
+                    </div>
+                </div>
+            </div>
+            <div class="panel-body">
+                <p th:if="${keyword != null and !keyword.isBlank()}" class="text-muted">
+                    Search result for "<strong th:text="${keyword}"></strong>":
+                    <span th:text="${#lists.size(users)}">0</span> user(s) found.
+                </p>
+
+                <table class="table table-hover">
+                    <thead>
+                    <tr>
+                        <th>ID</th>
+                        <th>Name</th>
+                        <th>Age</th>
+                        <th>Salary</th>
+                        <th style="width:180px"></th>
+                    </tr>
+                    </thead>
+                    <tbody>
+                    <tr th:each="u : ${users}">
+                        <td th:text="${u.id}">1</td>
+                        <td th:text="${u.name}">Sam</td>
+                        <td th:text="${u.age}">30</td>
+                        <td th:text="${#numbers.formatDecimal(u.salary, 1, 'COMMA', 0, 'POINT')}">70000</td>
+                        <td class="text-right">
+                            <a th:href="@{/users/edit/{id}(id=${u.id})}" class="btn btn-success btn-sm">Edit</a>
+                            <form class="inline-form delete-form" th:action="@{/users/delete/{id}(id=${u.id})}"
+                                  method="post" th:attr="data-name=${u.name}">
+                                <button type="submit" class="btn btn-danger btn-sm">Remove</button>
+                            </form>
+                        </td>
+                    </tr>
+                    <tr th:if="${#lists.isEmpty(users)}">
+                        <td colspan="5" class="text-center text-muted">No users found.</td>
+                    </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </div>
+</div>
+
+<script th:src="@{/webjars/jquery/3.7.1/jquery.min.js}"></script>
+<script th:src="@{/webjars/bootstrap/3.4.1/js/bootstrap.min.js}"></script>
+<script>
+    $(function () {
+        // Tự ẩn thông báo thành công sau 4 giây
+        setTimeout(function () { $('.auto-hide').fadeOut(400); }, 4000);
+
+        // Xác nhận trước khi xóa
+        $('.delete-form').on('submit', function () {
+            return confirm('Remove user "' + $(this).data('name') + '"?');
+        });
+    });
+</script>
+</body>
+</html>
